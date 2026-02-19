@@ -1,493 +1,351 @@
+/* =========================================
+   1. CSS VARIABLES & THEME SETUP
+   ========================================= */
 :root {
-  --bg: #0f172a;
-  --panel: #111827;
-  --panel-soft: #1f2937;
+  /* Bảng màu Dark Mode chuyên nghiệp */
+  --bg-app: #0b1120;
+  --bg-panel: #1e293b;
+  --bg-panel-hover: #334155;
   --border: #334155;
-  --text: #e5e7eb;
-  --muted: #94a3b8;
-  --accent: #38bdf8;
-  --accent-soft: rgba(56, 189, 248, 0.14);
-  --good: #22c55e;
-  --warn: #f59e0b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent: #0ea5e9; /* Xanh dương công nghệ */
+  --accent-soft: rgba(14, 165, 233, 0.15);
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  /* Thông số layout */
+  --sidebar-width: 280px;
+  --radius: 12px;
+  --transition: 0.2s ease-in-out;
 }
 
-*,
-*::before,
-*::after {
+* {
   box-sizing: border-box;
-}
-
-html,
-body {
   margin: 0;
-  min-height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding: 0;
 }
 
 body {
-  padding: 24px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden; /* Chặn cuộn trang tổng, chỉ cuộn từng phần nhỏ */
 }
 
-button,
-input {
-  font: inherit;
-}
+/* Tùy chỉnh thanh cuộn (Scrollbar) cho thanh lịch */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
+/* =========================================
+   2. APP SHELL (Bố cục tổng thể)
+   ========================================= */
 .app-shell {
-  max-width: 1440px;
-  margin: 0 auto;
+  display: flex;
+  height: 100vh;
+  width: 100vw;
 }
 
-.app-header {
+/* =========================================
+   3. SIDEBAR (Thanh điều hướng bên trái)
+   ========================================= */
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--bg-panel);
+  border-right: 1px solid var(--border);
   display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  align-items: flex-start;
-  margin-bottom: 24px;
+  flex-direction: column;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.sidebar-header {
+  padding: 24px 20px;
+  border-bottom: 1px solid var(--border);
 }
 
 .eyebrow {
-  margin: 0 0 8px;
   color: var(--accent);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 0.75rem;
   text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
 }
 
-h1 {
-  margin: 0;
-  font-size: clamp(2rem, 4vw, 3rem);
-  line-height: 1.05;
+.sidebar-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.sidebar-nav {
+  padding: 20px 12px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+}
+
+.tab-btn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+}
+
+.tab-btn.active {
+  background-color: var(--accent-soft);
+  color: var(--accent);
+  border-color: rgba(14, 165, 233, 0.3);
+}
+
+.sidebar-footer {
+  padding: 20px;
+  border-top: 1px solid var(--border);
+}
+
+/* =========================================
+   4. MAIN WORKSPACE (Khu vực làm việc chính)
+   ========================================= */
+.main-workspace {
+  flex-grow: 1;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bg-app);
+}
+
+.view-section {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.view-section.active {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 5;
+}
+
+.view-section.hidden {
+  display: none; /* JS sẽ lo vụ ẩn hiện */
+}
+
+.view-header {
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.view-header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 
 .subtle {
-  margin: 12px 0 0;
-  max-width: 720px;
-  color: var(--muted);
-  line-height: 1.6;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 4px;
 }
 
-.header-actions {
+.view-content {
+  flex-grow: 1;
+  padding: 24px 32px;
+  overflow-y: auto;
+}
+
+/* =========================================
+   5. LAYOUT TỪNG TAB
+   ========================================= */
+/* Tab 1: Live Dispatch Layout */
+.dispatch-layout {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  gap: 24px;
+  height: 100%;
+  padding-bottom: 24px;
 }
 
+.map-placeholder {
+  flex-grow: 1;
+  background: var(--bg-panel);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.live-fleet-panel {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Tab 2: Analytics Layout */
+.analytics-layout {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  height: 100%;
+}
+
+.chart-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  min-height: 300px;
+}
+
+/* Tab 3: Data Inspector Layout */
 .layout {
   display: grid;
   grid-template-columns: minmax(280px, 320px) minmax(360px, 1fr) minmax(320px, 380px);
-  gap: 16px;
-}
-
-.card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 20px;
-  min-height: 620px;
-}
-
-.stack {
-  display: flex;
-  flex-direction: column;
-}
-
-.gap-sm {
-  gap: 10px;
-}
-
-.gap-lg {
   gap: 24px;
+  align-items: start;
 }
+
+/* =========================================
+   6. UI COMPONENTS TÁI SỬ DỤNG
+   ========================================= */
+.card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.stack { display: flex; flex-direction: column; }
+.gap-sm { gap: 12px; }
+.gap-lg { gap: 24px; }
+.section-row { display: flex; justify-content: space-between; align-items: center; }
 
 .section-title {
-  margin: 0;
-  color: var(--muted);
   font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  color: var(--text-muted);
   text-transform: uppercase;
-}
-
-.section-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
 }
 
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 42px;
-  padding: 0 16px;
+  padding: 10px 16px;
+  border-radius: 8px;
   border: 1px solid var(--border);
-  border-radius: 999px;
   background: transparent;
-  color: var(--text);
+  color: var(--text-main);
   cursor: pointer;
-  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: var(--transition);
 }
 
-.button:hover {
-  border-color: var(--accent);
-}
+.button:hover { background: var(--bg-panel-hover); }
 
 .button-primary {
   background: var(--accent);
-  border-color: var(--accent);
-  color: #08111f;
-  font-weight: 700;
+  color: #fff;
+  border: none;
 }
+.button-primary:hover { background: #0284c7; }
 
-.status {
-  margin: 0;
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: var(--panel-soft);
-  color: var(--muted);
-  line-height: 1.5;
-}
-
-.status.success {
-  color: var(--text);
-  border: 1px solid rgba(34, 197, 94, 0.35);
-}
-
-.status.error {
-  color: #fecaca;
-  border: 1px solid rgba(239, 68, 68, 0.35);
-}
-
-.switcher {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.switcher:empty::before {
-  content: "Load data to reveal available solutions.";
-  color: var(--muted);
-}
-
-.toggle-button {
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text);
-}
-
-.toggle-button.active {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.meta-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-  margin: 0;
-}
-
-.meta-row {
-  display: grid;
-  grid-template-columns: 110px 1fr;
-  gap: 12px;
-  align-items: start;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: var(--panel-soft);
-}
-
-.meta-row dt {
-  color: var(--muted);
-  font-weight: 600;
-}
-
-.meta-row dd {
-  margin: 0;
-}
-
-.schema-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-}
-
-.schema-item {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: var(--panel-soft);
-}
-
-.schema-item strong {
-  font-size: 0.95rem;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 999px;
+.status-mini {
   font-size: 0.8rem;
-  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
 }
 
-.badge.present {
-  color: #052e16;
-  background: rgba(34, 197, 94, 0.95);
-}
-
-.badge.missing {
-  color: #451a03;
-  background: rgba(245, 158, 11, 0.95);
-}
-
-.overview-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.metric-card {
-  padding: 16px;
-  border-radius: 14px;
-  background: var(--panel-soft);
-}
-
-.metric-label {
-  margin: 0 0 8px;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.metric-value {
-  margin: 0;
-  font-size: 1.8rem;
-  font-weight: 700;
-}
-
-.metric-subtext {
-  margin: 8px 0 0;
-  color: var(--muted);
-  line-height: 1.5;
-}
-
-.notes {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.note {
-  padding: 14px 16px;
-  border-left: 3px solid var(--accent);
-  border-radius: 0 12px 12px 0;
-  background: var(--panel-soft);
-  color: var(--text);
-  line-height: 1.6;
-}
-
-.pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.route-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  overflow: auto;
-}
-
-.route-list.empty {
-  color: var(--muted);
-}
-
-.route-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-height: 220px;
-}
-
-.route-detail.empty {
-  color: var(--muted);
-}
-
-.route-card {
-  padding: 14px;
-  border-radius: 14px;
-  background: var(--panel-soft);
-  border: 1px solid transparent;
-}
-
-.route-card.active {
-  border-color: var(--accent);
-}
-
-.route-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.route-title {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.route-kpis {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.route-kpi {
-  padding: 10px;
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.55);
-}
-
-.route-kpi-label {
-  margin: 0 0 6px;
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-
-.route-kpi-value {
-  margin: 0;
-  font-weight: 700;
-}
-
-.route-path {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.6;
-  word-break: break-word;
-}
-
-.detail-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.detail-card {
-  padding: 12px;
-  border-radius: 12px;
-  background: var(--panel-soft);
-}
-
-.detail-card-label {
-  margin: 0 0 6px;
-  color: var(--muted);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.detail-card-value {
-  margin: 0;
-  font-size: 1.15rem;
-  font-weight: 700;
-}
-
-.stop-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: var(--panel-soft);
-  border-radius: 14px;
-  overflow: hidden;
-}
-
-.stop-table th,
-.stop-table td {
-  padding: 10px 12px;
-  text-align: left;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-  vertical-align: top;
-}
-
-.stop-table th {
-  color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.stop-table tr:last-child td {
-  border-bottom: none;
-}
-
-.stop-seq {
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.stop-meta {
-  color: var(--muted);
-  line-height: 1.45;
-}
-
-.text-good {
-  color: var(--good);
-}
-
-.text-warn {
-  color: var(--warn);
-}
-
-@media (max-width: 1180px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
-
-  .card {
-    min-height: auto;
-  }
-}
-
-@media (max-width: 720px) {
-  body {
-    padding: 16px;
-  }
-
-  .app-header {
+/* =========================================
+   7. RESPONSIVE (Màn hình Dọc - Portrait)
+   ========================================= */
+@media (max-width: 1024px) {
+  /* Ép kiến trúc ngang biến thành dọc khi preview bằng màn hình dọc */
+  .app-shell {
     flex-direction: column;
   }
 
-  .header-actions {
-    justify-content: flex-start;
+  /* Sidebar biến thành Header/Tab bar trên cùng */
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
   }
 
-  .overview-grid,
-  .route-kpis,
-  .detail-grid {
-    grid-template-columns: 1fr;
+  .sidebar-header {
+    padding: 12px 0;
+    border-bottom: none;
   }
 
-  .meta-row {
-    grid-template-columns: 1fr;
+  /* Thanh tab chuyển thành cuộn ngang dạng pills */
+  .sidebar-nav {
+    flex-direction: row;
+    padding: 12px 0;
+    overflow-x: auto;
+    width: 100%;
+    order: 3; /* Đẩy tab bar xuống dưới header */
   }
+
+  .tab-btn {
+    width: auto;
+    white-space: nowrap;
+    padding: 8px 16px;
+  }
+
+  .sidebar-footer {
+    padding: 12px 0;
+    border-top: none;
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+  }
+
+  .view-content, .view-header {
+    padding: 16px;
+  }
+
+  /* Bẻ gãy Grid thành 1 cột xếp chồng cho màn dọc */
+  .dispatch-layout { flex-direction: column; }
+  .live-fleet-panel { width: 100%; height: 300px; flex-shrink: 0; }
+
+  .analytics-layout { grid-template-columns: 1fr; }
+
+  .layout { grid-template-columns: 1fr; }
 }

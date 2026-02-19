@@ -1,3 +1,39 @@
+// Import module điều khiển Tab
+import { TabController } from './components/TabController.js';
+import { TabController } from './components/TabController.js';
+import { Store } from './core/Store.js';
+import { DataLoader } from './core/DataLoader.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Nexus Dashboard: Initializing...');
+
+  // 1. Khởi động UI Tabs
+  const tabController = new TabController();
+
+  // 2. Khởi tạo kho chứa dữ liệu
+  const store = new Store();
+
+  // 3. Gắn Data Loader vào Store
+  const dataLoader = new DataLoader(store);
+
+  // Test: Lắng nghe thử xem Store có nhận được data không
+  store.subscribe((state) => {
+    console.log('Main: State has been updated!', state.sourceLabel);
+  });
+});
+
+
+// Đợi HTML load xong hết mới chạy logic để tránh lỗi chưa tìm thấy DOM
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Nexus Dashboard: Initializing...');
+
+  // Khởi động tính năng chuyển Tab
+  const tabController = new TabController();
+
+  // Lát nữa chúng ta sẽ khởi tạo DataLoader và MapEngine ở đây
+});
+
+
 'use strict';
 
 const SAMPLE_DATA_URL = '../logs/results-v8/nexus_demo.json';
