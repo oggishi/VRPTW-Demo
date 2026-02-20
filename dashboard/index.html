@@ -3,142 +3,123 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nexus Logistics Dashboard</title>
+  <title>VRPTW Research Dashboard</title>
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <div class="app-shell">
 
-  <nav class="sidebar">
-    <div class="user-avatar" title="Account Settings">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <p class="eyebrow">Project Nexus</p>
+      <h2>VRPTW Dashboard</h2>
     </div>
 
-    <div class="nav-menu">
-      <button class="nav-btn" data-target="setup" title="Project Setup">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    <nav class="sidebar-nav">
+      <button class="tab-btn active" data-tab="dispatch">
+        <span class="icon">📍</span> Live Dispatch
       </button>
-      <button class="nav-btn active" data-target="dispatch" title="Live Dispatch">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+      <button class="tab-btn" data-tab="analytics">
+        <span class="icon">📈</span> Analytics & Research
       </button>
-      <button class="nav-btn" data-target="analytics" title="Analytics">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+      <button class="tab-btn" data-tab="inspector">
+        <span class="icon">🔍</span> Route Inspector
       </button>
-      <button class="nav-btn" data-target="inspector" title="Data Inspector">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-      </button>
+    </nav>
+
+    <div class="sidebar-workspace" style="padding: 0 20px; flex-grow: 1; overflow-y: auto;">
+      <h3 class="eyebrow" style="margin-top: 20px;">Loaded Workspaces</h3>
+      <ul id="dataset-list" class="dataset-list stack gap-sm">
+      </ul>
     </div>
 
-    <div class="sidebar-footer">
-      <button id="load-sample" class="btn-primary" title="Load Demo Data">Load Demo</button>
-      <div class="legal-notice">Developed by<br><strong>Ông Năm Chèo</strong></div>
+    <div class="sidebar-footer stack gap-sm">
+      <label class="button button-primary" for="file-input">Load JSON File</label>
+      <input id="file-input" type="file" accept=".json" hidden>
+      <button class="button" id="load-sample" type="button">Load Sample Data</button>
+      <button class="button" id="save-file" type="button">💾 Save / Export Data</button>
+      <p id="data-status" class="status-mini">No file loaded</p>
     </div>
-  </nav>
+  </aside>
 
   <main class="main-workspace">
 
-    <div id="view-setup" class="workspace-view" style="display: none; padding: 40px; height: 100%; overflow-y: auto;">
-      <div class="setup-container">
-        <div class="setup-header">
-          <h2>Project Configuration</h2>
-          <p>Configure your fleet and manage delivery points using interactive tools.</p>
+    <section id="view-dispatch" class="view-section active">
+      <header class="view-header section-row">
+        <h1>Live Simulation</h1>
+        <div id="algo-switcher" class="switcher"></div>
+
+      </header>
+
+      <div class="view-content dispatch-layout">
+        <div id="map-container" class="map-placeholder">
+          <p class="subtle">Map Engine will mount here...</p>
         </div>
+        <aside class="live-fleet-panel card">
+          <h3 class="section-title">Fleet Status</h3>
+          <div id="live-fleet-list" class="route-list empty">Waiting for simulation...</div>
+        </aside>
+      </div>
+      <header class="view-header">
+        <h1>Algorithm Analytics</h1>
+        <p class="subtle">Convergence evaluation and ALNS operator heatmap.</p>
+      </header>
+    </section>
 
-        <div class="setup-grid">
-          <div class="setup-card">
-            <h3>1. Fleet Settings</h3>
-            <div class="form-group">
-              <label>Data Mode</label>
-              <div class="toggle-container">
-                <span class="toggle-label active">Demo Mode</span>
-                <label class="switch">
-                  <input type="checkbox" id="data-mode-toggle">
-                  <span class="slider round"></span>
-                </label>
-                <span class="toggle-label">Real-world Data</span>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Max Vehicles: <span id="val-vehicles" class="val-badge">10</span></label>
-              <input type="range" id="inp-vehicles" min="1" max="50" value="10" class="full-width">
-            </div>
-            <div class="form-group">
-              <label>Vehicle Capacity (kg): <span id="val-capacity" class="val-badge">200</span></label>
-              <input type="range" id="inp-capacity" min="50" max="1000" step="50" value="200" class="full-width">
-            </div>
-          </div>
+    <section id="view-analytics" class="view-section hidden">
 
-          <div class="setup-card">
-            <h3>2. Intelligent Input</h3>
-            <div class="import-tabs">
-              <button class="import-tab active" data-mode="map">Map Pinning</button>
-              <button class="import-tab" data-mode="excel">Excel Import</button>
-            </div>
-
-            <div id="input-map-panel">
-              <div style="font-size: 12px; color: #64748b; margin-bottom: 10px;">Click on the main map to drop delivery pins.</div>
-              <div id="node-list-preview" style="max-height: 150px; overflow-y: auto; background: #f8fafc; border-radius: 6px; padding: 10px; font-size: 12px;">
-                No points selected yet.
-              </div>
-            </div>
-
-            <div id="input-excel-panel" style="display: none;">
-              <div class="upload-zone" id="drop-zone">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                <p>Drag & Drop Excel file or Click to upload</p>
-                <input type="file" id="file-input" hidden accept=".xlsx, .xls, .csv">
-              </div>
-            </div>
-
-            <button class="btn-submit-job" style="margin-top: 20px;">
-              Execute AI Solver
-            </button>
-          </div>
+      <div class="view-content analytics-layout">
+        <div class="card chart-box" style="height: 450px; padding: 20px; position: relative;">
+          <canvas id="convergence-chart"></canvas>
+        </div>
+        <div class="card chart-box stack gap-sm" style="padding: 20px;">
+          <h3 class="section-title">Transfer Learning Metrics</h3>
+          <p class="subtle">Sẽ hiển thị Heatmap hoặc các chỉ số Zero-shot transfer tại đây.</p>
         </div>
       </div>
-    </div>
+    </section>
 
+    <section id="view-inspector" class="view-section hidden">
 
-    <div id="view-dispatch" class="workspace-view active">
-      <div id="map-container"></div>
-      <div class="floating-panel top-bar">
-        <div class="info-group">
-          <h2 style="font-size: 18px; color: #0f172a; margin-bottom: 4px;">Live Fleet Routing</h2>
-          <span id="data-status" class="status-badge" style="font-size: 12px; color: #64748b;">Waiting for data...</span>
-        </div>
-        <div class="controls-group" style="display: flex; gap: 20px; align-items: center;">
-          <div id="algo-switcher"></div>
-          <div class="speed-controller" style="display: flex; align-items: center; gap: 10px; background: #f1f5f9; padding: 6px 12px; border-radius: 8px;">
-            <label style="font-size: 13px; font-weight: 600; color: #334155;">Speed: <span id="speed-val">5</span>x</label>
-            <input type="range" id="sim-speed" min="1" max="20" value="5">
+      <header class="view-header">
+        <h1>Data Inspector</h1>
+        <p class="subtle">Raw JSON schema, meta details, and exact node sequences.</p>
+      </header>
+
+      <div class="view-content layout">
+        <div class="stack gap-lg">
+          <div class="card stack gap-sm">
+            <p class="section-title">Dataset Snapshot</p>
+            <dl id="meta-grid" class="meta-grid"></dl>
           </div>
         </div>
-      </div>
-      <div class="floating-panel" style="top: 90px; right: 20px; width: 280px; max-height: calc(100vh - 120px); overflow-y: auto; padding: 15px;">
-        <h3 style="margin-bottom: 15px; font-size: 15px; color: #0f172a; display: flex; justify-content: space-between; align-items: center;">
-          <span>Live Fleet Status</span>
-          <span style="font-size: 11px; background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 12px; font-weight: bold; display: flex; align-items: center; gap: 4px;">
-              LIVE <span style="display: inline-block; width: 6px; height: 6px; background: #16a34a; border-radius: 50%;"></span>
-            </span>
-        </h3>
-        <div id="fleet-status-list" style="display: flex; flex-direction: column; gap: 10px;">
-          <div style="font-size: 13px; color: #64748b;">Waiting for dispatch...</div>
+
+        <div class="card stack gap-sm">
+          <div class="section-row">
+            <p class="section-title">Routes</p>
+            <span id="route-summary" class="pill">No routes</span>
+          </div>
+          <div id="route-list" class="route-list empty">Load data to inspect routes.</div>
+        </div>
+
+        <div class="card stack gap-sm">
+          <div class="section-row">
+            <p class="section-title">Stop Details</p>
+            <span id="detail-summary" class="pill">No selection</span>
+          </div>
+          <div id="route-detail" class="route-detail empty">Select a route to inspect its stops.</div>
         </div>
       </div>
-    </div>
+    </section>
 
-
-    <div id="view-analytics" class="workspace-view" style="display: none; padding: 30px; height: 100%; overflow-y: auto;">
-      <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); height: 500px; max-width: 1200px; margin: 0 auto; position: relative;"><h2 style="color: #0f172a; margin-bottom: 20px;">Convergence Analytics</h2><canvas id="convergence-chart"></canvas></div>
-    </div>
-    <div id="view-inspector" class="workspace-view" style="display: none; padding: 30px; height: 100%; overflow-y: auto;">
-      <div style="max-width: 1200px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);"><h2 style="color: #0f172a; margin-bottom: 20px;">Data Inspector</h2><div id="meta-info" style="padding: 20px; background: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">No dataset loaded.</div><div id="route-details"></div></div>
-    </div>
   </main>
 </div>
+
 <script type="module" src="js/main.js"></script>
 </body>
 </html>

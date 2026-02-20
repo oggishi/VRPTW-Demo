@@ -2,108 +2,161 @@ export class InspectorView {
     constructor(store) {
         this.store = store;
 
-        // Tìm đúng 2 cái ID sinh tử mà chúng ta đã để sẵn trong index.html
-        this.metaContainer = document.getElementById('meta-info');
-        this.routeContainer = document.getElementById('route-details');
+        // Lưu lại cái index đang chọn (Thay vì để global như cũ)
+        this.localState = {
+            selectedRouteIndex: 0
+        };
 
-        // Lắng nghe dữ liệu
+        // DOM Elements của Tab 3
+        this.elements = {
+            metaGrid: document.getElementById('meta-grid'),
+            routeSummary: document.getElementById('route-summary'),
+            routeList: document.getElementById('route-list'),
+            detailSummary: document.getElementById('detail-summary'),
+            routeDetail: document.getElementById('route-detail'),
+        };
+
+        // Dặn class này: "Ê, khi nào Store có data mới thì chạy hàm render() nha!"
         this.store.subscribe((state) => {
+            this.localState.selectedRouteIndex = 0; // Reset lại route đang chọn
             this.render(state);
         });
     }
 
     render(state) {
-        // Nếu chưa có data thì dọn dẹp sạch sẽ
-        if (!state.data) {
-            if (this.metaContainer) {
-                this.metaContainer.innerHTML = 'Vui lòng load file JSON để xem thông tin meta...';
-            }
-            if (this.routeContainer) {
-                this.routeContainer.innerHTML = '';
-            }
-            return;
-        }
+        if (!state.data) return;
 
-        // Nếu có data thì vẽ bảng
         this.renderMeta(state.data);
-        this.renderRoutes(state);
+        this.renderRouteList(state.data, state.activeKey);
+        this.renderRouteDetail(state.data, state.activeKey);
     }
 
+    // --- MẤY HÀM NÀY LÀ TỪ CODE CŨ CỦA BẠN ĐƯA SANG ---
     renderMeta(data) {
-        // LỚP PHÒNG THỦ: Không có thẻ HTML thì cút luôn, không báo lỗi
-        if (!this.metaContainer) return;
+        const meta = data.meta ?? {};
+        const rows = [
+            ['Instance', meta.instance ?? 'Unknown'],
+            ['Dataset', meta.dataset ?? 'Unknown'],
+            ['Customers', this.formatNumber(meta.n_customers)],
+            ['Capacity', this.formatNumber(meta.capacity)],
+            ['Horizon', this.formatNumber(meta.horizon)],
+        ];
 
-        const meta = data.meta || {};
-        const totalNodes = data.nodes ? data.nodes.length : 0;
-
-        // Giao diện Meta Data dạng lưới (Grid) hiện đại
-        this.metaContainer.innerHTML = `
-            <h3 style="margin-bottom: 12px; color: #0284c7; font-size: 16px;">Dataset: ${meta.dataset || 'Unknown'}</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; font-size: 14px; color: #334155;">
-                <div style="background: white; padding: 10px; border-radius: 6px;"><strong>Instance:</strong> <br/>${meta.instance || 'N/A'}</div>
-                <div style="background: white; padding: 10px; border-radius: 6px;"><strong>Customers:</strong> <br/>${meta.n_customers || totalNodes}</div>
-                <div style="background: white; padding: 10px; border-radius: 6px;"><strong>Capacity:</strong> <br/>${meta.capacity || 'N/A'}</div>
-                <div style="background: white; padding: 10px; border-radius: 6px;"><strong>Horizon:</strong> <br/>${meta.horizon || 'N/A'}</div>
-            </div>
-        `;
+        this.elements.metaGrid.innerHTML = rows
+            .map(([label, value]) => `<div class="meta-row"><dt>${this.escapeHtml(label)}</dt><dd>${this.escapeHtml(String(value))}</dd></div>`)
+            .join('');
     }
 
-    renderRoutes(state) {
-        // LỚP PHÒNG THỦ
-        if (!this.routeContainer) return;
+    renderRouteList(data, activeKey) {
+        const solution = data[activeKey];
+        const routes = solution?.routes ?? [];
+        const nodeLookup = this.buildNodeLookup(data.nodes);
+        const routeStats = routes.map(route => this.summarizeRoute(route, nodeLookup, data.meta.capacity));
 
-        const activeSolution = state.data[state.activeKey];
+        this.elements.routeSummary.textContent = `${routeStats.length} routes`;
 
-        if (!activeSolution || !activeSolution.routes) {
-            this.routeContainer.innerHTML = '<div style="color: #64748b; padding: 20px 0;">Không có dữ liệu tuyến đường cho thuật toán này.</div>';
+        if (!routeStats.length) {
+            this.elements.routeList.className = 'route-list empty';
+            this.elements.routeList.textContent = 'No routes available.';
             return;
         }
 
-        // 1. Khởi tạo chuỗi HTML với phần Tiêu đề
-        let html = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="color: #0f172a; font-size: 16px;">Routes Distribution</h3>
-                <span style="background: #e0f2fe; color: #0284c7; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold;">
-                    Algo: ${activeSolution.algo || state.activeKey}
-                </span>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-        `;
+        const cards = routeStats.map((route, index) => {
+            const card = document.createElement('article');
+            card.className = `route-card${index === this.localState.selectedRouteIndex ? ' active' : ''}`;
 
-        // 2. Vòng lặp Javascript (Nằm ĐỘC LẬP bên ngoài chuỗi HTML)
-        activeSolution.routes.forEach((route, index) => {
-            const distance = route.dist ? route.dist.toFixed(2) : 'N/A';
-            const nodesStr = route.nodes ? route.nodes.join(' <span style="color:#cbd5e1;">➔</span> ') : 'Empty';
+            const latenessText = route.tightStops > 0 ? `${route.tightStops} tight TW stops` : 'No tight TW stops';
 
-            // Kiểm tra xem Route này có đang được click không để đổi màu nổi bật
-            const isActive = state.activeHoverRoute === index;
-            const borderStyle = isActive ? 'border: 2px solid #0284c7; background: #f0f9ff;' : 'border: 1px solid #e2e8f0; background: #f8fafc;';
+            card.innerHTML = `
+        <div class="route-header">
+          <h3 class="route-title">Vehicle ${this.escapeHtml(String(route.vehicleId))}</h3>
+          <span class="pill">${this.escapeHtml(latenessText)}</span>
+        </div>
+        <div class="route-kpis">
+          <div class="route-kpi"><p class="route-kpi-label">Stops</p><p class="route-kpi-value">${route.stopCount}</p></div>
+          <div class="route-kpi"><p class="route-kpi-label">Demand</p><p class="route-kpi-value">${this.formatNumber(route.totalDemand, 1)}</p></div>
+          <div class="route-kpi"><p class="route-kpi-label">Load</p><p class="route-kpi-value">${this.formatNumber(route.loadPct, 1)}%</p></div>
+        </div>
+        <p class="route-path">${this.escapeHtml(route.preview)}</p>
+      `;
 
-            // CỘNG DỒN chuỗi HTML cho từng thẻ Card
-            html += `
-                <div class="route-card" data-index="${index}" style="padding: 16px; border-radius: 8px; cursor: pointer; transition: all 0.2s; ${borderStyle}">
-                    <div style="display: flex; justify-content: space-between; font-weight: bold; color: #0f172a; margin-bottom: 8px;">
-                        <span>🚚 Route ${index + 1}</span>
-                        <span style="font-weight: normal; color: #64748b; font-size: 13px;">Distance: <strong>${distance}</strong></span>
-                    </div>
-                    <div style="font-family: monospace; color: #475569; font-size: 14px; word-wrap: break-word;">
-                        ${nodesStr}
-                    </div>
-                </div>
-            `;
-        });
-
-        // 3. Đóng thẻ Div bọc ngoài
-        html += '</div>';
-
-        // 4. In toàn bộ HTML ra giao diện
-        this.routeContainer.innerHTML = html;
-
-        // 5. Gắn sự kiện CLICK cho từng thẻ Card (Để làm tính năng Cross-filtering)
-        this.routeContainer.querySelectorAll('.route-card').forEach(card => {
             card.addEventListener('click', () => {
-                this.store.setHoverRoute(parseInt(card.dataset.index));
+                this.localState.selectedRouteIndex = index;
+                // Re-render khi bấm chọn xe khác
+                this.renderRouteList(data, activeKey);
+                this.renderRouteDetail(data, activeKey);
             });
+
+            return card;
         });
+
+        this.elements.routeList.className = 'route-list';
+        this.elements.routeList.replaceChildren(...cards);
     }
+
+    renderRouteDetail(data, activeKey) {
+        const solution = data[activeKey];
+        const routes = solution?.routes ?? [];
+        const route = routes[this.localState.selectedRouteIndex];
+
+        if (!route) {
+            this.elements.detailSummary.textContent = 'No selection';
+            this.elements.routeDetail.innerHTML = 'Select a route to inspect its stops.';
+            return;
+        }
+
+        const nodeLookup = this.buildNodeLookup(data.nodes);
+        const routeSummary = this.summarizeRoute(route, nodeLookup, data.meta.capacity);
+
+        this.elements.detailSummary.textContent = `Vehicle ${routeSummary.vehicleId}`;
+
+        // Vẽ chi tiết bảng các node xe đi qua
+        const stopRows = (route.nodes ?? []).map((nodeId, index) => {
+            const node = nodeLookup.get(nodeId);
+            if (!node) return `<tr><td colspan="5">Node missing</td></tr>`;
+            const twWidth = Number(node.due ?? 0) - Number(node.ready ?? 0);
+            const toneClass = twWidth < 30 ? 'text-warn' : 'text-good';
+
+            return `
+        <tr>
+          <td class="stop-seq">${index + 1}</td>
+          <td><strong>${node.id}</strong><div class="stop-meta">x=${node.x}, y=${node.y}</div></td>
+          <td>${this.formatNumber(node.demand, 1)}</td>
+          <td><span class="${toneClass}">[${node.ready}, ${node.due}]</span><div class="stop-meta">width ${twWidth}</div></td>
+          <td>${node.svc}</td>
+        </tr>`;
+        }).join('');
+
+        this.elements.routeDetail.innerHTML = `
+      <table class="stop-table">
+        <thead><tr><th>Seq</th><th>Stop</th><th>Demand</th><th>Time window</th><th>Service</th></tr></thead>
+        <tbody>${stopRows}</tbody>
+      </table>
+    `;
+    }
+
+    // --- CÁC HÀM TIỆN ÍCH ---
+    buildNodeLookup(nodes) { return new Map((nodes ?? []).map(n => [n.id, n])); }
+
+    summarizeRoute(route, nodeLookup, capacity) {
+        const nodes = Array.isArray(route.nodes) ? route.nodes : [];
+        const stats = nodes.reduce((acc, nodeId) => {
+            const node = nodeLookup.get(nodeId);
+            if (node) {
+                acc.totalDemand += Number(node.demand ?? 0);
+                if ((Number(node.due ?? 0) - Number(node.ready ?? 0)) < 30) acc.tightStops += 1;
+            }
+            return acc;
+        }, { totalDemand: 0, tightStops: 0 });
+
+        const cap = Number(capacity ?? 0);
+        const previewNodes = nodes.slice(0, 5).join(' -> ');
+        return {
+            vehicleId: route.id ?? '?', stopCount: nodes.length, totalDemand: stats.totalDemand, tightStops: stats.tightStops,
+            loadPct: cap > 0 ? (stats.totalDemand / cap) * 100 : 0, preview: `0 -> ${previewNodes} -> ... -> 0`,
+        };
+    }
+
+    formatNumber(val, d = 0) { return Number.isFinite(Number(val)) ? Number(val).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d }) : 'N/A'; }
+    escapeHtml(val) { return String(val).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
 }
