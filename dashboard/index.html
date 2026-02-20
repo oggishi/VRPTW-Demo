@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>VRPTW Research Dashboard</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -48,6 +53,7 @@
       <header class="view-header section-row">
         <h1>Live Simulation</h1>
         <div id="algo-switcher" class="switcher"></div>
+
       </header>
 
       <div class="view-content dispatch-layout">
@@ -59,21 +65,27 @@
           <div id="live-fleet-list" class="route-list empty">Waiting for simulation...</div>
         </aside>
       </div>
-    </section>
-
-    <section id="view-analytics" class="view-section hidden">
       <header class="view-header">
         <h1>Algorithm Analytics</h1>
         <p class="subtle">Convergence evaluation and ALNS operator heatmap.</p>
       </header>
+    </section>
+
+    <section id="view-analytics" class="view-section hidden">
 
       <div class="view-content analytics-layout">
-        <div class="card chart-box">Convergence Chart Placeholder</div>
-        <div class="card chart-box">Transfer Learning Metrics Placeholder</div>
+        <div class="card chart-box" style="height: 450px; padding: 20px; position: relative;">
+          <canvas id="convergence-chart"></canvas>
+        </div>
+        <div class="card chart-box stack gap-sm" style="padding: 20px;">
+          <h3 class="section-title">Transfer Learning Metrics</h3>
+          <p class="subtle">Sẽ hiển thị Heatmap hoặc các chỉ số Zero-shot transfer tại đây.</p>
+        </div>
       </div>
     </section>
 
     <section id="view-inspector" class="view-section hidden">
+
       <header class="view-header">
         <h1>Data Inspector</h1>
         <p class="subtle">Raw JSON schema, meta details, and exact node sequences.</p>

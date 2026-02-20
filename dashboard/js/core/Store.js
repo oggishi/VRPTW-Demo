@@ -1,86 +1,98 @@
 export class Store {
     constructor() {
         this.state = {
+            inventory: [],
+            activeId: null,
             data: null,
-            sourceLabel: 'No file loaded yet.',
+            sourceLabel: 'No file loaded',
             activeKey: null,
             selectedRouteIndex: 0,
         };
-
-        this.solutionRegistry = [
-            { key: 'rl_alns', label: 'DDQN-ALNS' },
-            { key: 'alns', label: 'ALNS' },
-        ];
+        this.solutionRegistry = [{ key: 'rl_alns', label: 'DDQN-ALNS' }, { key: 'alns', label: 'ALNS' }];
         this.listeners = [];
-
-        // --- TÍNH NĂNG MỚI: TỰ ĐỘNG LOAD TỪ LOCAL STORAGE ---
         this.loadFromCache();
     }
 
     subscribe(listener) {
         this.listeners.push(listener);
-        // Nếu có sẵn data trong cache thì báo cho view vẽ luôn ngay lần đầu
-        if (this.state.data) listener(this.state);
+        if (this.state.data || this.state.inventory.length > 0) listener(this.state);
     }
 
-    notify() {
-        this.listeners.forEach(listener => listener(this.state));
-    }
+    notify() { this.listeners.forEach(listener => listener(this.state)); }
 
     loadData(parsedData, label) {
         this.validateData(parsedData);
-        this.state.data = parsedData;
-        this.state.sourceLabel = label;
-        this.state.activeKey = this.pickDefaultSolution(parsedData);
-        this.state.selectedRouteIndex = 0;
-
-        console.log('Store: Data loaded successfully!');
-
-        // --- TÍNH NĂNG MỚI: LƯU VÀO LOCAL STORAGE ---
-        try {
-            localStorage.setItem('nexus_cache', JSON.stringify(this.state));
-            console.log('Store: Session auto-saved to LocalStorage.');
-        } catch (e) {
-            console.warn('Store: File too large for LocalStorage, skipping auto-save.');
+        const exists = this.state.inventory.find(item => item.label === label);
+        if (exists) {
+            this.setActiveDataset(exists.id);
+            return;
         }
+        const newId = Date.now().toString();
+        this.state.inventory.push({ id: newId, label: label, data: parsedData });
+        this.setActiveDataset(newId);
+    }
 
+    setActiveDataset(id) {
+        const target = this.state.inventory.find(item => item.id === id);
+        if (!target) return;
+        this.state.activeId = id;
+        this.state.data = target.data;
+        this.state.sourceLabel = target.label;
+        this.state.activeKey = this.pickDefaultSolution(target.data);
+        this.state.selectedRouteIndex = 0;
+        this.saveToCache();
         this.notify();
+    }
+
+    removeDataset(id) {
+        this.state.inventory = this.state.inventory.filter(item => item.id !== id);
+        if (this.state.activeId === id) {
+            if (this.state.inventory.length > 0) {
+                this.setActiveDataset(this.state.inventory[0].id);
+            } else {
+                this.state.activeId = null;
+                this.state.data = null;
+                this.state.sourceLabel = 'No file loaded';
+                this.saveToCache();
+                this.notify();
+            }
+        } else {
+            this.saveToCache();
+            this.notify();
+        }
+    }
+
+    saveToCache() {
+        try { localStorage.setItem('nexus_cache', JSON.stringify(this.state)); }
+        catch (e) { console.warn('Cache full'); }
     }
 
     loadFromCache() {
         try {
             const cached = localStorage.getItem('nexus_cache');
             if (cached) {
-                this.state = JSON.parse(cached);
-                console.log('Store: Restored session from previous visit!');
+                const parsedData = JSON.parse(cached);
+                this.state = { ...this.state, ...parsedData };
+                if (!this.state.inventory) this.state.inventory = [];
             }
-        } catch (e) {
-            console.error('Store: Failed to read cache', e);
-            localStorage.removeItem('nexus_cache');
-        }
+        } catch (e) { localStorage.removeItem('nexus_cache'); }
     }
 
-    // Chức năng xuất file tải về máy
     exportData() {
         if (!this.state.data) return alert('No data to save!');
-
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.state.data, null, 2));
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "nexus_saved_session.json");
-        document.body.appendChild(downloadAnchorNode);
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
+        const a = document.createElement('a');
+        a.href = dataStr; a.download = `${this.state.sourceLabel}_export.json`;
+        document.body.appendChild(a); a.click(); a.remove();
     }
 
     validateData(data) {
-        if (!data || typeof data !== 'object') throw new Error('The JSON root must be an object.');
-        if (!Array.isArray(data.nodes) || data.nodes.length < 2) throw new Error('Expected a nodes array with at least depot + 1 customer.');
-        if (!data.alns && !data.rl_alns) throw new Error('Expected at least one solution block: alns or rl_alns.');
+        if (!data || typeof data !== 'object') throw new Error('Invalid JSON');
+        if (!data.alns && !data.rl_alns) throw new Error('Missing alns/rl_alns block');
     }
 
     pickDefaultSolution(data) {
-        const firstAvailable = this.solutionRegistry.find(item => Boolean(data[item.key]));
-        return firstAvailable ? firstAvailable.key : null;
+        const first = this.solutionRegistry.find(item => Boolean(data[item.key]));
+        return first ? first.key : null;
     }
 }

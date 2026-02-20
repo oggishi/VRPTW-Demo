@@ -1,14 +1,14 @@
 export class DataLoader {
     constructor(store) {
         this.store = store;
-        this.SAMPLE_DATA_URL = './data/nexus_demo.json';
+        this.SAMPLE_DATA_URL = './data/sample.json';
 
         this.elements = {
             fileInput: document.getElementById('file-input'),
             loadSampleBtn: document.getElementById('load-sample'),
             saveFileBtn: document.getElementById('save-file'),
             dataStatus: document.getElementById('data-status'),
-            datasetList: document.getElementById('dataset-list'), // Khu vực UI mới
+            datasetList: document.getElementById('dataset-list'),
         };
 
         this.init();
@@ -19,7 +19,6 @@ export class DataLoader {
         if(this.elements.loadSampleBtn) this.elements.loadSampleBtn.addEventListener('click', () => this.loadSampleData());
         if(this.elements.saveFileBtn) this.elements.saveFileBtn.addEventListener('click', () => this.store.exportData());
 
-        // Lắng nghe store để vẽ lại danh sách file mỗi khi có thay đổi
         this.store.subscribe((state) => {
             this.renderDatasetList(state);
             if (state.data) {
@@ -30,10 +29,8 @@ export class DataLoader {
         });
     }
 
-    // HÀM MỚI: Vẽ danh sách Workspace
     renderDatasetList(state) {
         if (!this.elements.datasetList) return;
-
         this.elements.datasetList.innerHTML = '';
 
         state.inventory.forEach(dataset => {
@@ -45,14 +42,9 @@ export class DataLoader {
         <button class="btn-remove" title="Remove Workspace">✕</button>
       `;
 
-            // Click vào tên file để chuyển tab
-            li.querySelector('.label').addEventListener('click', () => {
-                this.store.setActiveDataset(dataset.id);
-            });
-
-            // Click vào nút X để xóa file
+            li.querySelector('.label').addEventListener('click', () => this.store.setActiveDataset(dataset.id));
             li.querySelector('.btn-remove').addEventListener('click', (e) => {
-                e.stopPropagation(); // Ngăn không cho sự kiện click lan ra thẻ li
+                e.stopPropagation();
                 this.store.removeDataset(dataset.id);
             });
 
@@ -69,7 +61,7 @@ export class DataLoader {
         reader.onload = () => {
             try {
                 const parsed = JSON.parse(String(reader.result ?? ''));
-                this.store.loadData(parsed, file.name); // Sửa label cho ngắn gọn
+                this.store.loadData(parsed, file.name);
             } catch (error) {
                 this.updateStatus(error.message, 'status-mini error');
             }
@@ -85,10 +77,7 @@ export class DataLoader {
             const response = await fetch(this.SAMPLE_DATA_URL);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const parsed = await response.json();
-
-            // SỬA DÒNG NÀY: Đổi tên hiển thị thành sample.json
-            this.store.loadData(parsed, './data/sample.json');
-
+            this.store.loadData(parsed, 'sample.json');
         } catch (error) {
             this.updateStatus('Could not fetch sample data.', 'status-mini error');
         }
