@@ -1,46 +1,38 @@
 export class TabController {
     constructor() {
-        // Tìm tất cả các nút bấm ở thanh Sidebar
-        this.tabButtons = document.querySelectorAll('.sidebar-nav .tab-btn');
-        // Tìm tất cả các khu vực giao diện chính
-        this.viewSections = document.querySelectorAll('.main-workspace .view-section');
+        // Cập nhật class mới theo UI Sidebar mỏng
+        this.buttons = document.querySelectorAll('.nav-btn');
+        this.views = document.querySelectorAll('.workspace-view');
 
-        this.init();
-    }
-
-    init() {
-        if (this.tabButtons.length === 0) {
-            console.warn('TabController: No tab buttons found.');
+        if (this.buttons.length === 0) {
+            console.warn('TabController: No tab buttons found. Check HTML classes.');
             return;
         }
 
-        // Gắn sự kiện click cho từng nút
-        this.tabButtons.forEach(button => {
-            button.addEventListener('click', (e) => this.switchTab(e.currentTarget));
+        this.buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = `view-${btn.dataset.target}`;
+                this.switchTab(btn, targetId);
+            });
         });
     }
 
-    switchTab(clickedButton) {
-        // 1. Lấy tên tab từ thuộc tính data-tab (ví dụ: 'dispatch', 'analytics')
-        const targetTabId = clickedButton.getAttribute('data-tab');
-        if (!targetTabId) return;
+    switchTab(activeBtn, targetId) {
+        // Tắt highlight tất cả các nút, bật nút được click
+        this.buttons.forEach(b => b.classList.remove('active'));
+        activeBtn.classList.add('active');
 
-        // 2. Xóa trạng thái active của TẤT CẢ các nút, và add vào nút vừa click
-        this.tabButtons.forEach(btn => btn.classList.remove('active'));
-        clickedButton.classList.add('active');
-
-        // 3. Ẩn TẤT CẢ các view và hiện view tương ứng
-        this.viewSections.forEach(section => {
-            if (section.id === `view-${targetTabId}`) {
-                section.classList.remove('hidden');
-                // setTimeout nhẹ để CSS Transition opacity mượt mà
-                setTimeout(() => section.classList.add('active'), 10);
-            } else {
-                section.classList.remove('active');
-                section.classList.add('hidden');
-            }
+        // Ẩn tất cả các màn hình
+        this.views.forEach(v => {
+            v.style.display = 'none';
+            v.classList.remove('active');
         });
 
-        console.log(`Switched to workspace: ${targetTabId}`);
+        // Hiện màn hình tương ứng
+        const targetView = document.getElementById(targetId);
+        if (targetView) {
+            targetView.style.display = 'block';
+            targetView.classList.add('active');
+        }
     }
 }

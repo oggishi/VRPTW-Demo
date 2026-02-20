@@ -7,6 +7,7 @@ export class Store {
             sourceLabel: 'No file loaded',
             activeKey: null,
             selectedRouteIndex: 0,
+            activeHoverRoute: null // <--- THÊM DÒNG NÀY: Dùng để nhớ Route nào đang được click
         };
         this.solutionRegistry = [{ key: 'rl_alns', label: 'DDQN-ALNS' }, { key: 'alns', label: 'ALNS' }];
         this.listeners = [];
@@ -94,5 +95,11 @@ export class Store {
     pickDefaultSolution(data) {
         const first = this.solutionRegistry.find(item => Boolean(data[item.key]));
         return first ? first.key : null;
+    }
+    // THÊM HÀM NÀY VÀO TRONG CLASS STORE
+    setHoverRoute(index) {
+        // Nếu click lại route đang chọn thì bỏ chọn (hiện lại toàn bộ xe)
+        this.state.activeHoverRoute = this.state.activeHoverRoute === index ? null : index;
+        this.notify(); // Ra lệnh vẽ lại toàn bộ hệ thống!
     }
 }
