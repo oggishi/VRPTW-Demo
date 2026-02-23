@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEXUS — VRPTW Research Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════ UPLOAD SCREEN -->
+<div id="screen-upload">
+  <div class="grid-bg"></div>
+  <div class="upload-card">
+    <div class="uc-logo">
+      <div class="logo-hex">⬡</div>
+      <div class="logo-text">
+        <span class="logo-n">NEXUS</span>
+        <span class="logo-sub">VRPTW · Route Intelligence Dashboard</span>
+      </div>
+    </div>
+
+    <div class="drop-zone" id="drop-zone">
+      <div class="dz-glow"></div>
+      <input type="file" id="file-input" accept=".json">
+      <div class="dz-body" id="dz-body">
+        <div class="dz-arrow">↑</div>
+        <div class="dz-title">Drop <code>nexus_demo.json</code></div>
+        <div class="dz-hint">or click anywhere here to browse</div>
+      </div>
+    </div>
+
+    <div class="uc-status" id="uc-status"></div>
+
+    <div class="uc-pills">
+      <div class="pill"><span class="pill-dot green"></span>Routes · Map</div>
+      <div class="pill"><span class="pill-dot sky"></span>ALNS vs DDQN-ALNS</div>
+      <div class="pill"><span class="pill-dot amber"></span>Convergence · Operators</div>
+      <div class="pill"><span class="pill-dot purple"></span>Transfer RC1→RC2</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ DASHBOARD -->
+<div id="screen-dash" class="hidden">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="tb-brand">
+      <span class="tb-hex">⬡</span>
+      <span class="tb-name">NEXUS</span>
+    </div>
+    <div class="tb-divider"></div>
+    <div class="tb-instance" id="tb-instance">RC101</div>
+    <div class="tb-meta" id="tb-meta">100 customers · Cap 200 · Solomon</div>
+    <div class="tb-divider"></div>
+
+    <!-- Algo toggle -->
+    <div class="tb-algo-wrap">
+      <button class="algo-tab active" data-algo="rl">DDQN-ALNS</button>
+      <button class="algo-tab" data-algo="alns">ALNS</button>
+    </div>
+
+    <div class="tb-spacer"></div>
+    <div class="tb-live"><span class="pulse"></span>LIVE VIEW</div>
+    <button class="tb-reset" id="btn-reset">↩ Load New</button>
+  </header>
+
+  <!-- BODY GRID: left | map | right -->
+  <div class="dash-body">
+
+    <!-- ── LEFT PANEL ── -->
+    <aside class="panel-left">
+
+      <!-- KPI row -->
+      <div class="section-label">Solution Quality</div>
+      <div class="kpi-row" id="kpi-row"></div>
+
+      <!-- Bar compare -->
+      <div class="section-label mt">vs BKS</div>
+      <div class="bar-compare" id="bar-compare"></div>
+
+      <!-- Route list -->
+      <div class="section-label mt">
+        Routes · <span id="route-label">DDQN-ALNS</span>
+        <span class="route-count" id="route-count"></span>
+      </div>
+      <div class="route-list" id="route-list"></div>
+
+    </aside>
+
+    <!-- ── MAP ── -->
+    <div class="map-wrap">
+      <div id="map"></div>
+
+      <!-- map badge -->
+      <div class="map-badge" id="map-badge">DDQN-ALNS</div>
+
+      <!-- layer controls -->
+      <div class="map-ctrls">
+        <button class="mc active" data-layer="routes">Routes</button>
+        <button class="mc active" data-layer="stops">Stops</button>
+        <button class="mc" data-layer="tw">TW Zones</button>
+      </div>
+
+      <!-- stat overlay -->
+      <div class="map-stat" id="map-stat"></div>
+    </div>
+
+    <!-- ── RIGHT PANEL ── -->
+    <aside class="panel-right">
+
+      <!-- Convergence -->
+      <div class="section-label">Convergence</div>
+      <div class="canvas-box" id="conv-box">
+        <div class="replay-bar">
+          <button class="rb-btn" id="rb-play">▶</button>
+          <div class="rb-track" id="rb-track"><div class="rb-fill" id="rb-fill"></div></div>
+          <span class="rb-pct" id="rb-pct">0%</span>
+        </div>
+        <canvas id="conv-canvas"></canvas>
+      </div>
+
+      <!-- Operator heatmap -->
+      <div class="section-label mt">Operator Usage · Destroy × Repair</div>
+      <div class="canvas-box small" id="heat-box">
+        <canvas id="heat-canvas"></canvas>
+      </div>
+
+      <!-- Gap chart -->
+      <div class="section-label mt">Gap % vs BKS · All Instances</div>
+      <div class="canvas-box small" id="gap-box">
+        <canvas id="gap-canvas"></canvas>
+      </div>
+
+      <!-- Transfer -->
+      <div class="section-label mt">Transfer Learning · RC1→RC2 Zero-shot</div>
+      <div class="transfer-panel" id="transfer-panel"></div>
+
+      <!-- Summary table -->
+      <div class="section-label mt">Benchmark Summary</div>
+      <div class="summary-wrap" id="summary-wrap"></div>
+
+    </aside>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
