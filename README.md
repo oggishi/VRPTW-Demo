@@ -11,33 +11,9 @@ The project leverages an RL agent to dynamically select the most effective heuri
 ```text
 VRPTW-RESEARCH-OPTIMIZ...
 ├── demo/
-│   ├── assets/
-│   ├── data/
-│   └── index.html
 ├── legacy/
-│   ├── data/
-│   ├── style.css
-│   ├── index.html
-│   ├── app.js
-│   ├── solomon-parser.js
-│   └── hybrid-rl-alns-for-vrptw.log
 ├── logs/
-│   ├── results-v5/
-│   └── results-v7/
-│       ├── models/
-│       ├── benchmark_transfer.csv
-│       ├── benchmark.csv
-│       ├── nexus_demo.json
-│       ├── hybrid-rl-alns-for-vrptw-97d929.log
-│       ├── hybrid-rl-alns-for-vrptw-a9b129.log
-│       └── dashboard.png
 ├── past-reports/
-│   ├── References/
-│   ├── 1233.docx
-│   ├── NOTE_NCKH_TDTU_VRPTW_2526.docx
-│   ├── notebook5cf2826d49.ipynb
-│   ├── 11-2025.pdf
-│   └── 1233.pdf
 ├── .gitignore
 ├── vrptw.ipynb
 └── README.md
