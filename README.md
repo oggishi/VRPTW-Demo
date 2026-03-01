@@ -21,9 +21,8 @@ The project aims to leverage RL to dynamically select the most effective heurist
 ## 📂 Project Overview
 
 - `vrptw.ipynb`: The main research notebook containing algorithm implementation, training, and evaluation.
-- `index.html`, `app.js`, `style.css`: The frontend engine for 2D route visualization.
+- `index.html`: The frontend engine for 2D route visualization.
 - `data/`: Contains Solomon benchmark datasets.
-- `solomon-parser.js`: Utility to parse standard benchmark files into JSON for the visualization tool.
 - `past-reports/`: Academic documentation and research logs.
 
 ---
